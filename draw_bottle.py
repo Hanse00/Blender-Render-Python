@@ -11,10 +11,11 @@ class ParameterFunction(object):
         self.t_min = t_min
         self.t_max = t_max
 
-class TwoDimentionalPos(object):
-    def __init__(self, x, y):
+class ThreeDimentionalPos(object):
+    def __init__(self, x, y, z):
         self.x = x
         self.y = y
+        self.z = z
 
     def __repr__(self):
         return "x: {}, y: {}".format(self.x, self.y)
@@ -40,7 +41,7 @@ def determine_points_for_function(function, gradient):
         x = eval(function.x_function)
         y = eval(function.y_function)
 
-        points.append(TwoDimentionalPos(x, y))
+        points.append(ThreeDimentionalPos(x, y, 0))
 
     return points
 
@@ -51,6 +52,20 @@ def determine_points_for_functions(functions, gradient):
         points += determine_points_for_function(function, gradient)
 
     return points
+
+def rotate_point(point, angle):
+    new_x = point.x * np.cos(angle) - point.z * np.sin(angle)
+    new_z = point.x * np.sin(angle) + point.z * np.cos(angle)
+
+    return ThreeDimentionalPos(new_x, point.y, new_z)
+
+def rotate_points(points, angle):
+    rotated_points = []
+
+    for point in points:
+        rotated_points.append(rotate_point(point, angle))
+
+    return rotated_points
 
 def draw_mesh_from_points(points):
     me = bpy.data.meshes.new("BottleMesh")
@@ -64,7 +79,7 @@ def draw_mesh_from_points(points):
     bm = bmesh.from_edit_mesh(me)
 
     for point in points:
-        bm.verts.new((point.x, point.y, 0))
+        bm.verts.new((point.x, point.y, point.z))
 
     bm.faces.new(bm.verts)
     bpy.ops.object.mode_set(mode="OBJECT")
@@ -73,7 +88,11 @@ def draw_mesh_from_points(points):
 def main():
     functions = define_functions()
 
-    points = determine_points_for_functions(functions, gradient)
+    flat_points = determine_points_for_functions(functions, gradient)
+
+    points = flat_points
+    for i in np.arange(1, 5, 1):
+        points += rotate_points(flat_points, i)
 
     draw_mesh_from_points(points)
 
