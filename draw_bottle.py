@@ -1,3 +1,5 @@
+import bpy
+import bmesh
 import numpy as np
 
 gradient = 0.1
@@ -27,7 +29,7 @@ def define_functions():
     functions.append(ParameterFunction("0.125*t+(85.0/16.0)", "t", 13.5, 21.5))
     functions.append(ParameterFunction("8", "t", 21.5, 32.5))
     functions.append(ParameterFunction("(11443628834973.0/5000000000000000.0)*(t**3)-(26583850931771.0/100000000000000.0)*(t**2)+(2466875588189.0/250000000000.0)*t-(1104695652178.0/10000000000.0)", "t", 32.5, 44))
-    functions.append(ParameterFunction("t-44", "44", 44, 48))
+    functions.append(ParameterFunction("-(t-48)", "44", 44, 48))
 
     return functions
 
@@ -50,10 +52,30 @@ def determine_points_for_functions(functions, gradient):
 
     return points
 
+def draw_mesh_from_points(points):
+    me = bpy.data.meshes.new("BottleMesh")
+    obj = bpy.data.objects.new("Bottle", me)
+
+    bpy.context.scene.objects.link(obj)
+    bpy.context.scene.objects.active = obj
+    bpy.ops.object.mode_set(mode="EDIT")
+
+    bm = bmesh.new()
+    bm = bmesh.from_edit_mesh(me)
+
+    for point in points:
+        bm.verts.new((point.x, point.y, 0))
+
+    bm.faces.new(bm.verts)
+    bpy.ops.object.mode_set(mode="OBJECT")
+    me.update()
+
 def main():
     functions = define_functions()
 
     points = determine_points_for_functions(functions, gradient)
+
+    draw_mesh_from_points(points)
 
 if __name__ == "__main__":
     main()
