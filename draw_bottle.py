@@ -1,9 +1,21 @@
+import numpy as np
+
+gradient = 1
+
 class ParameterFunction(object):
     def __init__(self, x_function, y_function, t_min, t_max):
         self.x_function = x_function
         self.y_function = y_function
         self.t_min = t_min
         self.t_max = t_max
+
+class TwoDimentionalPos(object):
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+
+    def __repr__(self):
+        return "x: {}, y: {}".format(self.x, self.y)
 
 def define_functions():
     functions = []
@@ -19,14 +31,21 @@ def define_functions():
 
     return functions
 
+def determine_points_for_function(function, gradient):
+    points = []
+
+    for t in np.arange(function.t_min, function.t_max, gradient):
+        x = eval(function.x_function)
+        y = eval(function.y_function)
+
+        points.append(TwoDimentionalPos(x, y))
+
+    return points
+
 def main():
     functions = define_functions()
 
-    for function in functions:
-        print function.x_function
-        print function.y_function
-        print function.t_min
-        print function.t_max
+    print determine_points_for_function(functions[2], 0.5)
 
 if __name__ == "__main__":
     main()
